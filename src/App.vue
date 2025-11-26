@@ -16,19 +16,13 @@
 
       <!-- Todo List -->
       <div class="todo-list">
-        <div 
-          v-for="todo in filteredTodos" 
+        <TodoItem
+          v-for="todo in filteredTodos"
           :key="todo.id"
-          :class="['todo-item', { completed: todo.completed }]"
-        >
-          <input 
-            type="checkbox" 
-            v-model="todo.completed"
-            class="todo-checkbox"
-          >
-          <span class="todo-text">{{ todo.text }}</span>
-          <button @click="removeTodo(todo.id)" class="delete-btn">×</button>
-        </div>
+          :todo="todo"
+          @delete="removeTodo(todo.id)"
+          @toggle="toggleTodo"
+        />
       </div>
 
       <!-- Filters and Stats -->
@@ -61,8 +55,13 @@
 </template>
 
 <script>
+import TodoItem from './components/TodoItem.vue'
+
 export default {
   name: 'App',
+  components: {
+    TodoItem
+  },
   data() {
     return {
       newTodo: '',
@@ -105,6 +104,10 @@ export default {
     },
     removeTodo(id) {
       this.todos = this.todos.filter(todo => todo.id !== id);
+    },
+    toggleTodo(id) {
+      const t = this.todos.find(todo => todo.id === id);
+      if (t) t.completed = !t.completed;
     },
     clearCompleted() {
       this.todos = this.todos.filter(todo => !todo.completed);
