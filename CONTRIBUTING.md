@@ -29,27 +29,32 @@ Please be respectful and constructive in all interactions. We're committed to pr
 ### Pull Requests
 
 1. **Fork the repository**
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/vue-app1.git
    cd vue-app1
    ```
 
 2. **Create a feature branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 3. **Make your changes**
+
    - Keep commits atomic and descriptive
    - Follow the existing code style
    - Write clear commit messages
 
 4. **Test your changes**
+
    - Test locally: `npm run dev` (backend) and `npm run serve` (frontend)
    - Ensure no errors or warnings in console
    - Test new features thoroughly
 
 5. **Push to your fork**
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -66,10 +71,12 @@ Please be respectful and constructive in all interactions. We're committed to pr
 ## Development Setup
 
 ### Prerequisites
+
 - Node.js v14+
 - PostgreSQL v12+ or Docker
 
 ### Installation
+
 ```bash
 # Backend setup
 cd server
@@ -81,6 +88,7 @@ npm install
 ```
 
 ### Running Locally
+
 ```bash
 # Terminal 1: Backend
 cd server
@@ -94,6 +102,7 @@ npm run serve
 Access the app at **http://localhost:8082**
 
 ### Database Setup
+
 ```bash
 cd server
 node setup-db.js
@@ -111,6 +120,7 @@ node setup-db.js
 ## Commit Messages
 
 Use clear, descriptive commit messages:
+
 ```
 feat: Add todo editing functionality
 fix: Resolve database connection timeout
@@ -120,6 +130,7 @@ test: Add tests for API endpoints
 ```
 
 Prefix types:
+
 - **feat**: A new feature
 - **fix**: A bug fix
 - **docs**: Documentation only
