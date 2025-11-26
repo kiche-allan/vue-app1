@@ -9,13 +9,20 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
 });
 
-// Test connection
+// Test connection (non-blocking)
 pool.connect((err, client, release) => {
   if (err) {
-    return console.error('Error acquiring client', err.stack);
+    console.error('Warning: Database connection error (will retry on request):', err.message);
+    release && release();
+  } else {
+    console.log('✓ Connected to PostgreSQL database');
+    release();
   }
-  console.log('Connected to PostgreSQL database');
-  release();
+});
+
+// Handle connection errors gracefully
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
 });
 
 module.exports = pool;

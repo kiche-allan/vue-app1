@@ -1,61 +1,63 @@
 <template>
-  <div id="app">
-    <div class="container">
-      <h1>Vue Todo App</h1>
-      
-      <!-- Add Todo Form -->
-      <div class="add-todo">
-        <input 
-          v-model="newTodo" 
+  <div id="app" class="container">
+    <header class="header">
+      <h1>Todo App</h1>
+      <p class="subtitle">Manage your tasks efficiently</p>
+    </header>
+
+    <main class="main-content">
+      <!-- Loading State -->
+      <div v-if="loading" class="loading">Loading todos...</div>
+
+      <!-- Error Message -->
+      <div v-if="error" class="error-message">
+        {{ error }}
+        <button @click="error = null" class="close-btn">✕</button>
+      </div>
+
+      <!-- Input Section -->
+      <div class="input-section">
+        <input
+          v-model="newTodoText"
           @keyup.enter="addTodo"
-          placeholder="What needs to be done?"
+          type="text"
+          placeholder="Add a new todo..."
           class="todo-input"
-        >
-        <button @click="addTodo" class="add-btn">Add</button>
-      </div>
-
-      <!-- Todo List -->
-      <div class="todo-list">
-        <TodoItem
-          v-for="todo in filteredTodos"
-          :key="todo.id"
-          :todo="todo"
-          @delete="removeTodo(todo.id)"
-          @toggle="toggleTodo"
         />
+        <button @click="addTodo" class="add-btn">Add Todo</button>
       </div>
 
-      <!-- Filters and Stats -->
-      <div class="footer">
-        <div class="todo-count">
-          {{ incompleteTodos }} items left
-        </div>
-        
-        <div class="filters">
-          <button 
-            v-for="filter in filters" 
-            :key="filter"
-            @click="currentFilter = filter"
-            :class="{ active: currentFilter === filter }"
-          >
-            {{ filter }}
-          </button>
+      <!-- Todos List -->
+      <div class="todos-container">
+        <div v-if="todos.length === 0" class="empty-state">
+          <p>No todos yet. Add one to get started!</p>
         </div>
 
-        <button 
-          v-if="hasCompleted"
-          @click="clearCompleted"
-          class="clear-btn"
-        >
-          Clear Completed
-        </button>
+        <div v-else class="todos-list">
+          <TodoItem
+            v-for="todo in todos"
+            :key="todo.id"
+            :todo="todo"
+            @toggle="toggleTodo"
+            @update="updateTodo"
+            @delete="deleteTodo"
+          />
+        </div>
       </div>
-    </div>
+
+      <!-- Stats -->
+      <div v-if="todos.length > 0" class="stats">
+        <p>Total: <strong>{{ todos.length }}</strong></p>
+        <p>Completed: <strong>{{ completedCount }}</strong></p>
+        <p>Remaining: <strong>{{ todos.length - completedCount }}</strong></p>
+      </div>
+    </main>
   </div>
 </template>
 
 <script>
 import TodoItem from './components/TodoItem.vue'
+import todoService from './services/todoService'
 
 export default {
   name: 'App',
@@ -64,100 +66,186 @@ export default {
   },
   data() {
     return {
-      newTodo: '',
-      currentFilter: 'all',
-      filters: ['all', 'active', 'completed'],
-      todos: [
-        { id: 1, text: 'Learn Vue.js', completed: true },
-        { id: 2, text: 'Build a todo app', completed: false }
-      ]
+      todos: [],
+      newTodoText: '',
+      loading: true,
+      error: null
     }
   },
   computed: {
-    filteredTodos() {
-      switch (this.currentFilter) {
-        case 'active':
-          return this.todos.filter(todo => !todo.completed);
-        case 'completed':
-          return this.todos.filter(todo => todo.completed);
-        default:
-          return this.todos;
-      }
-    },
-    incompleteTodos() {
-      return this.todos.filter(todo => !todo.completed).length;
-    },
-    hasCompleted() {
-      return this.todos.some(todo => todo.completed);
+    completedCount() {
+      return this.todos.filter(todo => todo.completed).length
     }
   },
   methods: {
-    addTodo() {
-      if (this.newTodo.trim()) {
-        this.todos.push({
-          id: Date.now(),
-          text: this.newTodo.trim(),
-          completed: false
-        });
-        this.newTodo = '';
+    async fetchTodos() {
+      try {
+        this.loading = true
+        this.error = null
+        const response = await todoService.getTodos()
+        this.todos = response.data
+      } catch (error) {
+        this.error = 'Failed to fetch todos. Please try again.'
+        console.error('Error fetching todos:', error)
+      } finally {
+        this.loading = false
       }
     },
-    removeTodo(id) {
-      this.todos = this.todos.filter(todo => todo.id !== id);
+
+    async addTodo() {
+      if (!this.newTodoText.trim()) {
+        this.error = 'Please enter a todo text'
+        return
+      }
+
+      try {
+        this.error = null
+        const response = await todoService.createTodo(this.newTodoText)
+        this.todos.unshift(response.data)
+        this.newTodoText = ''
+      } catch (error) {
+        this.error = 'Failed to add todo. Please try again.'
+        console.error('Error adding todo:', error)
+      }
     },
-    toggleTodo(id) {
-      const t = this.todos.find(todo => todo.id === id);
-      if (t) t.completed = !t.completed;
+
+    async toggleTodo(id) {
+      try {
+        this.error = null
+        const todo = this.todos.find(t => t.id === id)
+        const response = await todoService.updateTodo(id, {
+          completed: !todo.completed
+        })
+        const index = this.todos.findIndex(t => t.id === id)
+        this.todos[index] = response.data
+      } catch (error) {
+        this.error = 'Failed to update todo. Please try again.'
+        console.error('Error toggling todo:', error)
+      }
     },
-    clearCompleted() {
-      this.todos = this.todos.filter(todo => !todo.completed);
+
+    async updateTodo(id, updatedTodo) {
+      try {
+        this.error = null
+        const response = await todoService.updateTodo(id, updatedTodo)
+        const index = this.todos.findIndex(t => t.id === id)
+        this.todos[index] = response.data
+      } catch (error) {
+        this.error = 'Failed to update todo. Please try again.'
+        console.error('Error updating todo:', error)
+      }
+    },
+
+    async deleteTodo(id) {
+      try {
+        this.error = null
+        await todoService.deleteTodo(id)
+        this.todos = this.todos.filter(t => t.id !== id)
+      } catch (error) {
+        this.error = 'Failed to delete todo. Please try again.'
+        console.error('Error deleting todo:', error)
+      }
     }
+  },
+  mounted() {
+    this.fetchTodos()
   }
 }
 </script>
 
-<style>
+<style scoped>
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+#app {
   min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .container {
-  max-width: 500px;
+  max-width: 600px;
   margin: 0 auto;
-  background: white;
-  border-radius: 10px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-h1 {
+.header {
   text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-weight: 300;
+  color: white;
+  margin-bottom: 40px;
+  padding-top: 20px;
 }
 
-.add-todo {
-  display: flex;
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.main-content {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.error-message {
+  background: #fee;
+  border-left: 4px solid #f44336;
+  padding: 15px;
+  border-radius: 5px;
   margin-bottom: 20px;
+  color: #d32f2f;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #d32f2f;
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  opacity: 0.7;
+}
+
+.input-section {
+  display: flex;
   gap: 10px;
+  margin-bottom: 30px;
 }
 
 .todo-input {
   flex: 1;
-  padding: 12px;
-  border: 2px solid #e1e1e1;
-  border-radius: 6px;
-  font-size: 16px;
+  padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
   transition: border-color 0.3s;
 }
 
@@ -167,101 +255,60 @@ h1 {
 }
 
 .add-btn {
-  padding: 12px 20px;
-  background: #667eea;
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 16px;
-  transition: background 0.3s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .add-btn:hover {
-  background: #5a6fd8;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
-.todo-list {
+.add-btn:active {
+  transform: translateY(0);
+}
+
+.todos-container {
   margin-bottom: 20px;
 }
 
-.todo-item {
+.todos-list {
   display: flex;
-  align-items: center;
-  padding: 12px;
-  border-bottom: 1px solid #f0f0f0;
-  transition: background 0.3s;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.todo-item:hover {
-  background: #f9f9f9;
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  font-size: 1.1rem;
 }
 
-.todo-item.completed .todo-text {
-  text-decoration: line-through;
-  color: #888;
-}
-
-.todo-checkbox {
-  margin-right: 10px;
-  transform: scale(1.2);
-}
-
-.todo-text {
-  flex: 1;
-  font-size: 16px;
-}
-
-.delete-btn {
-  background: #ff6b6b;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  transition: background 0.3s;
-}
-
-.delete-btn:hover {
-  background: #ff5252;
-}
-
-.footer {
+.stats {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: space-around;
   padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
-  font-size: 14px;
+  border-top: 2px solid #f0f0f0;
+  text-align: center;
 }
 
-.filters button {
-  margin: 0 5px;
-  padding: 5px 10px;
-  border: 1px solid transparent;
-  background: none;
-  cursor: pointer;
-  border-radius: 3px;
+.stats p {
+  color: #666;
+  font-size: 0.95rem;
 }
 
-.filters button.active {
-  border-color: #667eea;
+.stats strong {
   color: #667eea;
-}
-
-.clear-btn {
-  background: #ff6b6b;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.clear-btn:hover {
-  background: #ff5252;
+  font-size: 1.3rem;
+  display: block;
+  margin-top: 5px;
 }
 </style>
