@@ -1,4 +1,5 @@
 # Vue Todo App
+<img width="961" height="947" alt="image" src="https://github.com/user-attachments/assets/95198394-2cf4-418b-ba73-8b833e0cdde4" />
 
 A full-stack todo application built with Vue.js 3, Express.js, and PostgreSQL. Create, read, update, and delete todos with a modern, responsive UI.
 
@@ -7,11 +8,11 @@ A full-stack todo application built with Vue.js 3, Express.js, and PostgreSQL. C
 - âœ… **Create Todos** - Add new tasks with a simple input form
 - âœï¸ **Edit Todos** - Inline editing of todo text
 - âœ“ **Toggle Completion** - Mark todos as complete or incomplete
-- í·‘ï¸ **Delete Todos** - Remove todos from your list
-- í³Š **Statistics** - View total, completed, and remaining todo counts
-- í¾¨ **Modern UI** - Beautiful gradient design with smooth animations
-- í³± **Responsive** - Works on desktop and mobile devices
-- í´„ **Real-time Updates** - Instant UI updates with database persistence
+- ï¿½ï¿½ï¿½ï¸ **Delete Todos** - Remove todos from your list
+- ï¿½ï¿½ï¿½ **Statistics** - View total, completed, and remaining todo counts
+- ï¿½ï¿½ï¿½ **Modern UI** - Beautiful gradient design with smooth animations
+- ï¿½ï¿½ï¿½ **Responsive** - Works on desktop and mobile devices
+- ï¿½ï¿½ï¿½ **Real-time Updates** - Instant UI updates with database persistence
 
 ## Tech Stack
 
@@ -197,7 +198,7 @@ All endpoints are prefixed with `/api`
 2. Enter a todo in the input field and click "Add Todo"
 3. Click the checkbox to mark a todo as complete
 4. Click the edit icon (âœï¸) to edit a todo's text
-5. Click the delete icon (í·‘ï¸) to remove a todo
+5. Click the delete icon (ï¿½ï¿½ï¿½ï¸) to remove a todo
 6. View statistics at the bottom showing total, completed, and remaining todos
 
 ## Available Scripts
@@ -300,4 +301,4 @@ For issues and feature requests, please create an issue on GitHub.
 
 ---
 
-**Happy Todo-ing! í¾‰**
+**Happy Todo-ing! ï¿½ï¿½ï¿½**
